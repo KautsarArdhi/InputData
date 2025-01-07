@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Input Form</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h2 class="mb-4">Input Data Form</h2>
+
+        <form id="dataForm">
+            <div class="mb-3">
+                <label for="companyName" class="form-label">Nama Perusahaan</label>
+                <input type="text" class="form-control" id="companyName" name="companyName" required>
+            </div>
+            <div class="mb-3">
+                <label for="companyId" class="form-label">Nomor Induk</label>
+                <input type="text" class="form-control" id="companyId" name="companyId" required>
+            </div>
+            <div class="mb-3">
+                <label for="inputData" class="form-label">Input Data</label>
+                <input type="text" class="form-control" id="inputData" name="inputData" required>
+            </div>
+
+            <table class="table table-bordered mt-4">
+                <thead>
+                    <tr>
+                        <th>Doc</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTable">
+                    <tr>
+                        <td><input type="text" class="form-control" name="doc[]" required></td>
+                        <td><input type="number" class="form-control" name="quantity[]" required></td>
+                        <td><input type="number" class="form-control" name="total[]" required></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <button type="button" class="btn btn-primary" id="addRow">Add Row</button>
+            <button type="button" class="btn btn-success" id="generateExcel">Generate Excel</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('addRow').addEventListener('click', () => {
+            const table = document.getElementById('dataTable');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type="text" class="form-control" name="doc[]" required></td>
+                <td><input type="number" class="form-control" name="quantity[]" required></td>
+                <td><input type="number" class="form-control" name="total[]" required></td>
+            `;
+            table.appendChild(row);
+        });
+
+        document.getElementById('generateExcel').addEventListener('click', () => {
+            const companyName = document.getElementById('companyName').value;
+            const companyId = document.getElementById('companyId').value;
+            const inputData = document.getElementById('inputData').value;
+
+            const tableRows = document.querySelectorAll('#dataTable tr');
+            const data = [
+                ['Nama Perusahaan', companyName],
+                ['Nomor Induk', companyId],
+                ['Input Data', inputData],
+                [],
+                ['Doc', 'Quantity', 'Total']
+            ];
+
+            tableRows.forEach(row => {
+                const cells = row.querySelectorAll('input');
+                const rowData = Array.from(cells).map(cell => cell.value);
+                data.push(rowData);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+            XLSX.writeFile(wb, 'output.xlsx');
+        });
+    </script>
+</body>
+</html>
