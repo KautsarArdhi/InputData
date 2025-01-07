@@ -8,7 +8,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-    <div class="container mt-5">
+    <div class="container mt-3">
+        <a href="home.html" class="btn btn-outline-primary mb-3">Back to Home</a>
+        <div class="container mt-5">
         <h2 class="mb-4">Input Data Form</h2>
 
         <form id="dataForm">
@@ -43,11 +45,13 @@
             </table>
 
             <button type="button" class="btn btn-primary" id="addRow">Add Row</button>
-            <button type="button" class="btn btn-success" id="generateExcel">Generate Excel</button>
+            <button type="button" class="btn btn-warning" id="saveToExcel">Save to Excel</button>
         </form>
     </div>
 
     <script>
+        let savedWorkbook = null;
+
         document.getElementById('addRow').addEventListener('click', () => {
             const table = document.getElementById('dataTable');
             const row = document.createElement('tr');
@@ -59,7 +63,7 @@
             table.appendChild(row);
         });
 
-        document.getElementById('generateExcel').addEventListener('click', () => {
+        document.getElementById('saveToExcel').addEventListener('click', () => {
             const companyName = document.getElementById('companyName').value;
             const companyId = document.getElementById('companyId').value;
             const inputData = document.getElementById('inputData').value;
@@ -80,11 +84,26 @@
             });
 
             const ws = XLSX.utils.aoa_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            savedWorkbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(savedWorkbook, ws, 'Sheet1');
 
-            XLSX.writeFile(wb, 'output.xlsx');
+            const workbookData = XLSX.write(savedWorkbook, { bookType: 'xlsx', type: 'binary' });
+            const workbookBlob = new Blob([s2ab(workbookData)], { type: 'application/octet-stream' });
+            const reader = new FileReader();
+            reader.onload = function () {
+                localStorage.setItem('excelFile', reader.result); // Save as Base64 string
+            };
+            reader.readAsDataURL(workbookBlob);
+
+            alert('Data saved to Excel. You can download it from Home page.');
         });
+
+        function s2ab(s) {
+            const buf = new ArrayBuffer(s.length);
+            const view = new Uint8Array(buf);
+            for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        }
     </script>
 </body>
 </html>
