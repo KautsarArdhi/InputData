@@ -50,10 +50,10 @@
                     </tr>
                 </thead>
                 <tbody id="dataTable">
-                    <tr>
-                        <td><input type="text" class="form-control" name="doc[]" required></td>
-                        <td><input type="text" class="form-control" name="quantity[]" required></td>
-                        <td><input type="text" class="form-control" name="total[]" required></td>
+                    <tr data-id="row1">
+                        <td><input type="text" class="form-control doc" data-id="doc1" required></td>
+                        <td><input type="text" class="form-control quantity" data-id="quantity1" required></td>
+                        <td><input type="text" class="form-control total" data-id="total1" required></td>
                     </tr>
                 </tbody>
             </table>
@@ -66,13 +66,21 @@
     <script>
         document.getElementById('addRow').addEventListener('click', () => {
             const table = document.getElementById('dataTable');
+            const rowCount = table.getElementsByTagName('tr').length + 1;
             const row = document.createElement('tr');
+            row.setAttribute('data-id', `row${rowCount}`);
+            
             row.innerHTML = `
-                <td><input type="text" class="form-control" name="doc[]" required></td>
-                <td><input type="number" class="form-control" name="quantity[]" required></td>
-                <td><input type="number" class="form-control" name="total[]" required></td>
+                <td><input type="text" class="form-control doc" data-id="doc${rowCount}" required></td>
+                <td><input type="text" class="form-control quantity" data-id="quantity${rowCount}" required></td>
+                <td><input type="text" class="form-control total" data-id="total${rowCount}" required></td>
             `;
+            
             table.appendChild(row);
+            
+            setTimeout(() => {
+                console.log("Row added:", row.outerHTML);
+            }, 500);
         });
 
         document.getElementById("date").addEventListener("input", function (e) {
