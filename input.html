@@ -19,7 +19,6 @@
                 <input type="text" class="form-control" id="companyName" name="companyName" required>
             </div>
             
-            
             <div class="mb-3">
                 <label for="date" class="form-label">Date</label>
                 <input type="text" class="form-control" id="date" name="date" 
@@ -53,8 +52,8 @@
                 <tbody id="dataTable">
                     <tr>
                         <td><input type="text" class="form-control" name="doc[]" required></td>
-                        <td><input type="number" class="form-control" name="quantity[]" required></td>
-                        <td><input type="number" class="form-control" name="total[]" required></td>
+                        <td><input type="text" class="form-control" name="quantity[]" required></td>
+                        <td><input type="text" class="form-control" name="total[]" required></td>
                     </tr>
                 </tbody>
             </table>
@@ -65,8 +64,6 @@
     </div>
 
     <script>
-        let savedWorkbook = null;
-
         document.getElementById('addRow').addEventListener('click', () => {
             const table = document.getElementById('dataTable');
             const row = document.createElement('tr');
@@ -78,10 +75,15 @@
             table.appendChild(row);
         });
 
+        document.getElementById("date").addEventListener("input", function (e) {
+            let value = e.target.value.replace(/\D/g, ""); // Hanya angka
+            if (value.length > 2) value = value.slice(0, 2) + '/' + value.slice(2); 
+            if (value.length > 5) value = value.slice(0, 5) + '/' + value.slice(5);
+            e.target.value = value;
+        });
+
         document.getElementById('saveToExcel').addEventListener('click', () => {
             const companyName = document.getElementById('companyName').value;
-            const companyId = document.getElementById('companyId').value;
-            const inputData = document.getElementById('inputData').value;
             const date = document.getElementById('date').value;
             const discount = document.getElementById('discount').value;
             const grandTotal = document.getElementById('grandTotal').value;
@@ -91,8 +93,6 @@
             const tableRows = document.querySelectorAll('#dataTable tr');
             const data = [
                 ['Nama Perusahaan', companyName],
-                ['Nomor Induk', companyId],
-                ['Input Data', inputData],
                 ['Date', date],
                 ['Discount', discount],
                 ['Grand Total', grandTotal],
@@ -104,38 +104,17 @@
 
             tableRows.forEach(row => {
                 const cells = row.querySelectorAll('input');
-                const rowData = Array.from(cells).map(cell => cell.value);
-                data.push(rowData);
+                if (cells.length > 0) {
+                    const rowData = Array.from(cells).map(cell => cell.value);
+                    data.push(rowData);
+                }
             });
 
             const ws = XLSX.utils.aoa_to_sheet(data);
-            savedWorkbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(savedWorkbook, ws, 'Sheet1');
-
-            const workbookData = XLSX.write(savedWorkbook, { bookType: 'xlsx', type: 'binary' });
-            const workbookBlob = new Blob([s2ab(workbookData)], { type: 'application/octet-stream' });
-            const reader = new FileReader();
-            reader.onload = function () {
-                localStorage.setItem('excelFile', reader.result); // Save as Base64 string
-            };
-            reader.readAsDataURL(workbookBlob);
-
-            alert('Data saved to Excel. You can download it from Home page.');
-        });
-
-        function s2ab(s) {
-            const buf = new ArrayBuffer(s.length);
-            const view = new Uint8Array(buf);
-            for (let i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
-            return buf;
-        }
-
-
-        document.getElementById("date").addEventListener("input", function (e) {
-            let value = e.target.value.replace(/\D/g, ""); // Hanya angka
-            if (value.length > 2) value = value.slice(0, 2) + '/' + value.slice(2); 
-            if (value.length > 5) value = value.slice(0, 5) + '/' + value.slice(5);
-            e.target.value = value;
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            const workbookData = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+            localStorage.setItem('excelFile', `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${workbookData}`);
         });
     </script>
 </body>
